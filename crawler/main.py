@@ -259,7 +259,7 @@ def find_latest_strategy(items):
             continue
         if ("货源" in title or "投放策略" in title or "策略表" in title) \
                 and month_cn in title:
-            item_id = item.get("id", item.get("item_id", item.get("news_id"))
+            item_id = item.get("id", item.get("item_id", item.get("news_id")))
             log(f"✓ 本期条目: {title}")
             return item_id
 
@@ -267,7 +267,7 @@ def find_latest_strategy(items):
     for item in items:
         title = item.get("title", item.get("title_name", ""))
         if "货源" in title or "投放策略" in title or "策略表" in title:
-            item_id = item.get("id", item.get("item_id", item.get("news_id"))
+            item_id = item.get("id", item.get("item_id", item.get("news_id")))
             log(f"✓ 货源条目: {title}")
             return item_id
 
