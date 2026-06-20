@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary 主色 —— 深绿（烟草行业） -->
+    <color name="primary">#FF2E7D32</color>
+    <color name="on_primary">#FFFFFFFF</color>
+    <color name="primary_container">#FFA5D6A7</color>
+    <color name="on_primary_container">#FF003910</color>
+
+    <!-- Secondary 辅色 -->
+    <color name="secondary">#FF52644F</color>
+    <color name="on_secondary">#FFFFFFFF</color>
+    <color name="secondary_container">#FFD5E8CF</color>
+    <color name="on_secondary_container">#FF102010</color>
+
+    <!-- 背景色 -->
+    <color name="background">#FFFBFDF8</color>
+    <color name="on_background">#FF191C19</color>
+    <color name="on_background_secondary">#FF414941</color>
+    <color name="on_background_hint">#FF737B73</color>
+
+    <!-- Surface -->
+    <color name="surface">#FFFBFDF8</color>
+    <color name="on_surface">#FF191C19</color>
+
+    <!-- Error -->
+    <color name="error">#FFBA1A1A</color>
+    <color name="on_error">#FFFFFFFF</color>
+</resources>

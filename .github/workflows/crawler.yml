@@ -1,0 +1,34 @@
+name: 每日爬取卷烟投放策略
+
+on:
+  schedule:
+    - cron: '0 0 * * *'       # UTC 0:00 = 北京时间 8:00
+  workflow_dispatch:           # 允许手动触发
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装系统依赖 (ddddocr ONNX Runtime)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libglib2.0-0 libgomp1
+
+      - name: 安装 Python 依赖
+        run: pip install -r crawler/requirements.txt
+
+      - name: 运行爬虫
+        env:
+          TOBACCO_USERNAME: ${{ secrets.TOBACCO_USERNAME }}
+          TOBACCO_PASSWORD: ${{ secrets.TOBACCO_PASSWORD }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: python crawler/main.py

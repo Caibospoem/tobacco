@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">福建烟草订货助手</string>
+    <string name="welcome_title">烟草订货助手</string>
+    <string name="welcome_subtitle">选挡位，查配额</string>
+    <string name="version_info">数据由 GitHub Actions 每日自动更新</string>
+</resources>

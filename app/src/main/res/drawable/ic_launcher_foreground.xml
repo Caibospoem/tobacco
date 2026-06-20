@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    图标前景：简化烟叶/烟草形状
+    用 108dp 画布上的路径绘制
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 烟叶形状（简化） -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,28
+            C54,28 38,34 32,46
+            C28,54 26,64 30,72
+            C32,76 36,78 40,76
+            C44,74 46,68 44,62
+            C42,56 38,52 38,52
+            C38,52 50,42 54,28Z"/>
+
+    <!-- 茎 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,36 L54,78"
+        android:strokeWidth="2.5"
+        android:strokeColor="#FFFFFF"/>
+
+    <!-- 左侧叶脉 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M47,48 L40,44 M50,54 L42,52 M52,60 L44,60"
+        android:strokeWidth="1.5"
+        android:strokeColor="#A5D6A7"/>
+
+    <!-- 右侧叶脉 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M61,48 L68,44 M58,54 L66,52 M56,60 L64,60"
+        android:strokeWidth="1.5"
+        android:strokeColor="#A5D6A7"/>
+
+    <!-- 底部文字 T -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,82 L60,82 L60,84 L48,84Z M53,82 L53,90 L55,90 L55,82Z"/>
+</vector>
