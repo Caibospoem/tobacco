@@ -42,7 +42,8 @@ session.headers.update({
 USERNAME = os.environ["TOBACCO_USERNAME"]
 PASSWORD = os.environ["TOBACCO_PASSWORD"]
 GH_TOKEN = os.environ["GH_TOKEN"]
-GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "")
+# 本地运行时用你自己的仓库名（GitHub Actions 会自动注入）
+GITHUB_REPO = os.environ.get("GITHUB_REPOSITORY", "Caibospoem/tobacco")
 
 ocr = ddddocr.DdddOcr(show_ad=False)
 LOCAL_FILE = "supply_strategy.xlsx"
