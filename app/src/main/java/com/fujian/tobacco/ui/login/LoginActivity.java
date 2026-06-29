@@ -259,9 +259,8 @@ public class LoginActivity extends AppCompatActivity {
                         .putString("cache_date", today).apply();
                 handler.post(() -> {
                     downloadDone = true;
-                    log("✓ 下载完成 " + f.length() + " bytes");
-                    log("→ 上传到 GitHub...");
-                    uploadToGitHub(f);
+                    log("✓ 下载完成 " + f.length() + " bytes，自动进入主页");
+                    handler.postDelayed(this::goMain, 500);
                 });
             } catch (Exception e) {
                 handler.post(() -> onError(e.getMessage()));
@@ -313,74 +312,6 @@ public class LoginActivity extends AppCompatActivity {
         isFetching = false;
         startActivity(new Intent(this, MainActivity.class));
         finish();
-    }
-
-    private void uploadToGitHub(File file) {
-        new Thread(() -> {
-            try {
-                String token = "github_pat_你的TOKEN"; // TODO: 从设置中读取
-                String repo = "Caibospoem/tobacco";
-                String path = "data/" + file.getName();
-                String base64 = android.util.Base64.encodeToString(
-                        java.nio.file.Files.readAllBytes(file.toPath()),
-                        android.util.Base64.NO_WRAP);
-
-                // GitHub API: PUT /repos/{owner}/{repo}/contents/{path}
-                String json = "{\"message\":\"更新策略表\",\"content\":\"" + base64 + "\"}";
-                okhttp3.RequestBody body = okhttp3.RequestBody.create(
-                        json, okhttp3.MediaType.parse("application/json"));
-                Request req = new Request.Builder()
-                        .url("https://api.github.com/repos/" + repo + "/contents/" + path)
-                        .header("Authorization", "Bearer " + token)
-                        .header("Accept", "application/vnd.github+json")
-                        .put(body)
-                        .build();
-                Response resp = http.newCall(req).execute();
-                String respBody = resp.body() != null ? resp.body().string() : "";
-                int code = resp.code();
-
-                if (code == 201 || code == 200) {
-                    log("✓ 上传成功 → GitHub Actions 开始解析");
-                } else {
-                    // 文件已存在需要更新（需要 sha）
-                    com.google.gson.JsonObject obj = new com.google.gson.Gson()
-                            .fromJson(respBody, com.google.gson.JsonObject.class);
-                    if (code == 422 && obj.has("message")) {
-                        log("文件已存在，获取sha...");
-                        // 先获取现有文件的sha
-                        Request getReq = new Request.Builder()
-                                .url("https://api.github.com/repos/" + repo + "/contents/" + path)
-                                .header("Authorization", "Bearer " + token)
-                                .build();
-                        Response getResp = http.newCall(getReq).execute();
-                        String getBody = getResp.body() != null ? getResp.body().string() : "";
-                        com.google.gson.JsonObject existing = new com.google.gson.Gson()
-                                .fromJson(getBody, com.google.gson.JsonObject.class);
-                        String sha = existing.get("sha").getAsString();
-                        String updateJson = "{\"message\":\"更新策略表\",\"content\":\""
-                                + base64 + "\",\"sha\":\"" + sha + "\"}";
-                        okhttp3.RequestBody updateBody = okhttp3.RequestBody.create(
-                                updateJson, okhttp3.MediaType.parse("application/json"));
-                        Request updateReq = new Request.Builder()
-                                .url("https://api.github.com/repos/" + repo + "/contents/" + path)
-                                .header("Authorization", "Bearer " + token)
-                                .header("Accept", "application/vnd.github+json")
-                                .put(updateBody)
-                                .build();
-                        Response updateResp = http.newCall(updateReq).execute();
-                        log(updateResp.code() == 200 || updateResp.code() == 201
-                                ? "✓ 更新成功" : "✗ 更新失败 " + updateResp.code());
-                    } else {
-                        log("✗ 上传失败 " + code + " " + respBody.substring(0,
-                                Math.min(100, respBody.length())));
-                    }
-                }
-                handler.postDelayed(this::goMain, 500);
-            } catch (Exception e) {
-                log("✗ 上传异常: " + e.getMessage());
-                handler.postDelayed(this::goMain, 500);
-            }
-        }).start();
     }
 
     private void onError(String msg) {

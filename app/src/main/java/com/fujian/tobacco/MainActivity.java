@@ -281,9 +281,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static final String PARSED_JSON_URL =
-            "https://raw.githubusercontent.com/Caibospoem/tobacco/main/data/parsed_strategy.json";
-
     // ========== 后台刷新下载 ==========
 
     private void downloadAndParse() {
@@ -302,62 +299,105 @@ public class MainActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             try {
-                // 1. 下载 AI 解析结果
-                Request req = new Request.Builder().url(PARSED_JSON_URL).build();
-                Response resp = httpClient.newCall(req).execute();
-                String json = resp.body() != null ? resp.body().string() : "";
-                resp.close();
+                // 1. 调 API 获取列表
+                String body = "action=ecw.page&method=call_service";
+                okhttp3.RequestBody reqBody = okhttp3.RequestBody.create(
+                        body, okhttp3.MediaType.parse("application/x-www-form-urlencoded"));
+                Request apiReq = new Request.Builder()
+                        .url("https://yxmall.fjycgs.com/wdk?action=ecw.page&method=call_service")
+                        .header("Cookie", cookie)
+                        .post(reqBody)
+                        .build();
+                Response apiResp = httpClient.newCall(apiReq).execute();
+                String respBody = apiResp.body() != null ? apiResp.body().string() : "";
+                apiResp.close();
 
-                if (json.isEmpty() || !json.startsWith("[")) {
-                    throw new Exception("解析结果格式错误，等待 GitHub Actions 完成");
+                com.google.gson.JsonObject root = new com.google.gson.Gson()
+                        .fromJson(respBody, com.google.gson.JsonObject.class);
+                if (!"1".equals(root.get("code").getAsString())) {
+                    throw new Exception("登录过期，请重新登录");
                 }
-
-                // 2. 解析 JSON → SupplyItem
-                com.google.gson.JsonArray arr = new com.google.gson.Gson()
-                        .fromJson(json, com.google.gson.JsonArray.class);
-                List<SupplyItem> items = new ArrayList<>();
-                int tierColIdx = (30 - selectedTier); // tier offset in quotas object
-
-                for (int i = 0; i < arr.size(); i++) {
-                    com.google.gson.JsonObject obj = arr.get(i).getAsJsonObject();
-                    SupplyItem item = new SupplyItem();
-                    item.setProductCode(obj.has("code") ? obj.get("code").getAsString() : "");
-                    item.setBrandName(obj.has("brand") ? obj.get("brand").getAsString() : "");
-                    item.setTierCategory(obj.has("category") ? obj.get("category").getAsString() : "");
-                    item.setRegion(obj.has("region") ? obj.get("region").getAsString() : "");
-                    item.setTotalRetailers(obj.has("retailers") ? obj.get("retailers").getAsInt() : 0);
-                    // 读取当前挡位的配额
-                    if (obj.has("quotas")) {
-                        com.google.gson.JsonObject quotas = obj.getAsJsonObject("quotas");
-                        String tierKey = String.valueOf(selectedTier);
-                        item.setPersonalQuota(quotas.has(tierKey) ? quotas.get(tierKey).getAsInt() : 0);
+                com.google.gson.JsonArray rows = root.getAsJsonObject("result")
+                        .getAsJsonArray("rows");
+                String fileid = null, showTime = null, titlePeriod = null, filename = null;
+                for (int i = 0; i < rows.size(); i++) {
+                    com.google.gson.JsonObject row = rows.get(i).getAsJsonObject();
+                    String title = row.get("title").getAsString();
+                    if (title != null && title.contains("全区卷烟货源投放策略表")) {
+                        showTime = row.get("show_time").getAsString();
+                        java.util.regex.Matcher pm = java.util.regex.Pattern
+                                .compile("（(\\d{4}年\\d{1,2}月\\d{1,2}日)下午-(\\d{4}年\\d{1,2}月\\d{1,2}日)上午）")
+                                .matcher(title);
+                        if (pm.find()) titlePeriod = pm.group(1) + "-" + pm.group(2);
+                        String remark = row.get("remark").getAsString();
+                        java.util.regex.Matcher nm = java.util.regex.Pattern
+                                .compile("([^/>]+\\.xlsx?)").matcher(remark);
+                        if (nm.find()) filename = nm.group(1);
+                        else filename = title + ".xlsx";
+                        java.util.regex.Matcher m = java.util.regex.Pattern
+                                .compile("fileid=([A-F0-9]+)").matcher(remark);
+                        if (m.find()) { fileid = m.group(1); break; }
                     }
-                    item.setUserTier(selectedTier);
-                    items.add(item);
+                }
+                if (fileid == null) throw new Exception("未找到策略表");
+
+                // 检查是否已是最新
+                String cachedDay = prefs.getString("cache_date", "");
+                String remoteDay = showTime != null && showTime.length() >= 10
+                        ? showTime.substring(0, 10) : "";
+                if (remoteDay.equals(cachedDay) && cachedXlsxFile != null
+                        && cachedXlsxFile.exists()) {
+                    handler.post(() -> {
+                        btnRefresh.setEnabled(true);
+                        progress.setVisibility(View.GONE);
+                        String period = prefs.getString("cache_period", "");
+                        tvStatus.setText(selectedTier + " 档 · " + adapter.getItemCount()
+                                + " 款 · " + period + "（最新）");
+                        Toast.makeText(MainActivity.this, "策略表暂无更新", Toast.LENGTH_SHORT).show();
+                    });
+                    return;
                 }
 
-                // 缓存
-                allItems.clear();
-                allItems.addAll(items);
-                String today = dateFmt.format(new Date());
-                prefs.edit().putString("cache_date", today).apply();
+                // 2. 下载 xlsx
+                String dlUrl = "https://yxmall.fjycgs.com/wdk?action=ecw.file"
+                        + "&method=attachment_download&fileid=" + fileid;
+                Request dlReq = new Request.Builder().url(dlUrl)
+                        .header("Cookie", cookie).build();
+                Response dlResp = httpClient.newCall(dlReq).execute();
+                if (!dlResp.isSuccessful() || dlResp.body() == null)
+                    throw new Exception("下载失败 HTTP " + dlResp.code());
+
+                File file = new File(getCacheDir(), filename != null ? filename : "supply_strategy.xlsx");
+                try (InputStream is = dlResp.body().byteStream();
+                     FileOutputStream fos = new FileOutputStream(file)) {
+                    byte[] buf = new byte[8192]; int n;
+                    while ((n = is.read(buf)) != -1) fos.write(buf, 0, n);
+                }
+                dlResp.close();
+                if (file.length() < 1000) throw new Exception("文件太小");
+
+                cachedXlsxFile = file;
+                String saveDate = remoteDay != null && !remoteDay.isEmpty()
+                        ? remoteDay : dateFmt.format(new Date());
+                prefs.edit().putString("cache_date", saveDate)
+                        .putString("cache_period", titlePeriod != null ? titlePeriod : saveDate)
+                        .putString("cache_filename", filename != null ? filename : "")
+                        .apply();
 
                 handler.post(() -> {
                     btnRefresh.setEnabled(true);
                     progress.setVisibility(View.GONE);
-                    Toast.makeText(MainActivity.this,
-                            "AI 解析完成 · " + items.size() + " 款", Toast.LENGTH_SHORT).show();
-                    showResults(items);
+                    Toast.makeText(MainActivity.this, "策略表已更新", Toast.LENGTH_SHORT).show();
                 });
+                doParse(file);
 
             } catch (Exception e) {
                 handler.post(() -> {
                     btnRefresh.setEnabled(true);
                     progress.setVisibility(View.GONE);
                     String msg = e.getMessage();
-                    if (msg != null && msg.contains("AI 解析")) {
-                        tvStatus.setText("等待云端解析完成...");
-                        Toast.makeText(this, "文件已上传，等待 GitHub Actions 解析", Toast.LENGTH_SHORT).show();
+                    if (msg != null && (msg.contains("登录过期") || msg.contains("API"))) {
+                        tvStatus.setText("登录过期，请重新登录");
                     } else {
                         tvStatus.setText("更新失败: " + msg);
                         Toast.makeText(this, "更新失败", Toast.LENGTH_SHORT).show();
