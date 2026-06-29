@@ -13,7 +13,7 @@
         android:background="@color/primary"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="14dp">
+        android:padding="12dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -26,15 +26,16 @@
                 android:layout_height="wrap_content"
                 android:text="@string/welcome_title"
                 android:textColor="@color/on_primary"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tv_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/welcome_subtitle"
                 android:textColor="@color/on_primary"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:alpha="0.8" />
         </LinearLayout>
 
@@ -42,105 +43,251 @@
             android:id="@+id/btn_login"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
+            android:layout_height="36dp"
             android:text="登录"
             android:textColor="@color/on_primary"
-            android:textSize="14sp" />
-
+            android:textSize="13sp" />
     </LinearLayout>
 
-    <!-- ══════ 状态提示 ══════ -->
+    <!-- ══════ 进度条 ══════ -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/primary" />
+
+    <!-- ══════ 内容区 ══════ -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/surface">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tv_status"
+        <!-- Tab 1: 查询配额 -->
+        <LinearLayout
+            android:id="@+id/tab_query"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="登录后选择挡位查询"
-            android:textSize="13sp"
-            android:textColor="@color/on_background_secondary"
-            android:gravity="center"
-            android:padding="10dp" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="visible">
 
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/progress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:visibility="gone"
-            android:layout_gravity="bottom"
-            app:indicatorColor="@color/primary" />
-
-    </FrameLayout>
-
-    <!-- ══════ 挡位 + 刷新 ══════ -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:background="@color/surface"
-        android:elevation="1dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="挡位"
-            android:textSize="15sp"
-            android:textColor="@color/on_surface" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            app:boxBackgroundColor="@color/background">
-
-            <AutoCompleteTextView
-                android:id="@+id/actv_tier"
+            <!-- 类型 + 挡位 -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textSize="15sp" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:orientation="horizontal"
+                android:padding="10dp"
+                android:gravity="center_vertical"
+                android:background="@color/surface"
+                android:elevation="2dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_refresh"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="刷新"
-            android:textSize="14sp"
-            android:layout_marginStart="10dp"
-            app:cornerRadius="8dp" />
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#DDD"
+                    app:strokeWidth="1dp"
+                    app:cardBackgroundColor="@color/background">
 
-        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+                    <Spinner
+                        android:id="@+id/spinner_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+                </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_count"
-            style="@style/Widget.Material3.Chip.Suggestion"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 款"
-            android:textSize="12sp" />
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_tier"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#DDD"
+                    app:strokeWidth="1dp"
+                    app:cardBackgroundColor="@color/background">
 
-    </LinearLayout>
+                    <AutoCompleteTextView
+                        android:id="@+id/actv_tier"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:inputType="none"
+                        android:textSize="14sp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:background="@null"
+                        android:hint="选择挡位" />
+                </com.google.android.material.card.MaterialCardView>
 
-    <!-- ══════ 列表 ══════ -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_list"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_refresh"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:text="↻"
+                    android:textSize="18sp"
+                    android:layout_marginStart="8dp"
+                    app:cornerRadius="22dp" />
+
+            </LinearLayout>
+
+            <!-- 列表 -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp" />
+        </LinearLayout>
+
+        <!-- Tab 2: xlsx 文件 -->
+        <ScrollView
+            android:id="@+id/tab_file"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/surface">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="📁 当前策略文件" android:textSize="16sp" android:textStyle="bold"
+                            android:textColor="@color/on_surface" />
+
+                        <TextView android:id="@+id/tv_file_name"
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="未下载" android:textSize="14sp"
+                            android:textColor="@color/on_background_secondary"
+                            android:layout_marginTop="8dp" />
+
+                        <TextView android:id="@+id/tv_file_info"
+                            android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:text="" android:textSize="12sp"
+                            android:textColor="@color/on_background_secondary"
+                            android:layout_marginTop="4dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_open_file"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:text="用其他应用打开"
+                            android:layout_marginTop="12dp"
+                            app:cornerRadius="8dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Tab 3: JSON 详情 -->
+        <ScrollView
+            android:id="@+id/tab_json"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:background="#1e1e1e">
+
+            <HorizontalScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_json"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="暂无数据"
+                    android:textSize="11sp"
+                    android:textColor="#d4d4d4"
+                    android:fontFamily="monospace"
+                    android:padding="12dp"
+                    android:lineSpacingExtra="2dp" />
+            </HorizontalScrollView>
+        </ScrollView>
+    </FrameLayout>
+
+    <!-- ══════ 底部导航 ══════ -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="16dp"
-        android:visibility="gone" />
+        android:layout_height="56dp"
+        android:background="@color/surface"
+        android:orientation="horizontal"
+        android:elevation="8dp">
+
+        <LinearLayout
+            android:id="@+id/nav_query"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="📋" android:textSize="20sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="查询配额" android:textSize="11sp" android:textColor="@color/on_surface" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_file"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="📁" android:textSize="20sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="xlsx文件" android:textSize="11sp" android:textColor="@color/on_surface" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_json"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="{}" android:textSize="20sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="JSON详情" android:textSize="11sp" android:textColor="@color/on_surface" />
+        </LinearLayout>
+    </LinearLayout>
 
 </LinearLayout>
